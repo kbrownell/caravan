@@ -1,25 +1,19 @@
 ---
-- hosts: all
-  become: yes
+#  vars_files:
+#    - caravan.yml
 
-  vars_files:
-    - vars/main.yml
-    - config/caravan.yml
+- include: /var/www/earth/vendor/geerlingguy/drupal-vm/provisioning/playbook.yml
 
-  tasks:
-    - name: run drupalvm playbook
-      include: tasks/run-drupalvm.yml
-
-    - name: setup BLT
-      when: ENV=acquia
-      include: tasks/setup-acquia.yml
-
-    - name: install site with BLT
-      when: ENV=acquia
-      include: tasks/install-acquia-site.yml
-
-    - name: setup Behat
-      include: tasks/setup-behat.yml
-
-    - name: run Behat
-      include: tasks/run-behat.yml
+#    - name: setup BLT
+#      when: ENV=acquia
+#      include: tasks/setup-acquia.yml
+#
+#    - name: install site with BLT
+#      when: ENV=acquia
+#      include: tasks/install-acquia-site.yml
+#
+#    - name: setup Behat
+#      include: tasks/setup-behat.yml
+#
+#    - name: run Behat
+#      include: tasks/run-behat.yml
