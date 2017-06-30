@@ -71,7 +71,3 @@ php_packages_extra:
 selenium_install_firefox: no
 selenium_install_chrome: no
 selenium_version: 2.47.1
-
-# Configuration for copying local public SSH key to admin's authorized_keys.
-admin_copy_ssh_pubkey: true
-admin_pubkey: ~/.ssh/acquia_id_rsa.pub
