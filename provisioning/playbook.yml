@@ -1,6 +1,9 @@
 ---
-#  vars_files:
-#    - caravan.yml
+- hosts: all
+  become: yes
+
+  vars_files:
+    - ../caravan.config.yml
 
 - include: /var/www/earth/vendor/geerlingguy/drupal-vm/provisioning/playbook.yml
 
