@@ -5,11 +5,8 @@
 
 # Setup config file paths
 BEHAT_DEFAULT_CONFIG="vendor/su-sws/drupal-caravan/config/behat.yml"
-DRUPALVM_CONFIG="vendor/su-sws/drupal-caravan/config/acquia.config.yml"
+DRUPALVM_CONFIG="vendor/su-sws/drupal-caravan/config/caravan.yml"
 DRUSH_ALIAS="vendor/su-sws/drupal-caravan/config/caravan.aliases.drushrc.php"
-
-# Copy config files into place
-if [ -L vendor/geerlingguy/drupal-vm/acquia.config.yml ]; then echo "config already linked"; else ln -s $DRUPALVM_CONFIG vendor/geerlingguy/drupal-vm/acquia.config.yml; fi
 
 # Bake a Docker container with Drupal VM.
 
@@ -77,50 +74,11 @@ docker exec --tty $DRUPALVM_MACHINE_NAME env TERM=xterm \
 status "Provisioning Drupal VM inside Docker container..."
 docker exec $DRUPALVM_MACHINE_NAME env TERM=xterm ANSIBLE_FORCE_COLOR=true \
   DRUPALVM_ENV=acquia \
-  ansible-playbook $DRUPALVM_PROJECT_ROOT/vendor/geerlingguy/drupal-vm/provisioning/playbook.yml
+  ansible-playbook $DRUPALVM_PROJECT_ROOT/vendor/su-sws/drupal-caravan/provisioning/playbook.yml
 
 status "...done!"
 status "Visit the Drupal VM dashboard: http://$DRUPALVM_IP_ADDRESS:$DRUPALVM_HTTP_PORT"
 
-status "Install BLT alias and vim"
-docker exec $DRUPALVM_MACHINE_NAME /var/www/earth/vendor/acquia/blt/scripts/blt/install-alias.sh -y
-
-status "Add ssh key"
-docker exec $DRUPALVM_MACHINE_NAME sh -c "chmod 600 /root/.ssh/id_rsa"
-docker exec $DRUPALVM_MACHINE_NAME sh -c 'eval "$(ssh-agent)"'
-docker exec $DRUPALVM_MACHINE_NAME sh -c "ssh-keyscan earthstg.ssh.prod.acquia-sites.com >> /root/.ssh/known_hosts"
-
-status "Installing Chrome 59.0.3071.104"
-docker exec $DRUPALVM_MACHINE_NAME sudo apt-get install libxss1 libappindicator1 libindicator7 vim wget -y
-docker exec $DRUPALVM_MACHINE_NAME wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-
-# Unpackaging chrome returns an error because it is missing dependencies, which is not a problem,
-# We install them a moment later.  So adding || true to be sure this behavior does not quite the script.
-docker exec $DRUPALVM_MACHINE_NAME sudo dpkg -i google-chrome-stable_current_amd64.deb || true
-docker exec $DRUPALVM_MACHINE_NAME sudo apt-get -f install -y
-docker exec $DRUPALVM_MACHINE_NAME google-chrome --version
-
-status "Installing Chromedriver"
-docker exec $DRUPALVM_MACHINE_NAME wget https://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip
-docker exec $DRUPALVM_MACHINE_NAME unzip chromedriver_linux64.zip
-docker exec $DRUPALVM_MACHINE_NAME sudo mv -f chromedriver /usr/local/share/chromedriver
-docker exec $DRUPALVM_MACHINE_NAME sudo ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
-docker exec $DRUPALVM_MACHINE_NAME sudo ln -s /usr/local/share/chromedriver /usr/bin/chromedriver
-status "Starting Selenium"
-docker exec $DRUPALVM_MACHINE_NAME service selenium start
-
-status "Copying site alias"
-docker exec $DRUPALVM_MACHINE_NAME sh -c "cp $DRUSH_ALIAS /var/www/earth/drush/site-aliases/caravan.aliases.drushrc.php"
-
-status "Installing Site, this make take a while"
-# Forcing this to resolve as true, so the script may continue.
-# Content is not able to be imported at the comment.
-docker exec $DRUPALVM_MACHINE_NAME sh -c "/var/www/earth/vendor/bin/blt local:refresh || true"
-
-status "Running tests"
-docker exec $DRUPALVM_MACHINE_NAME sh -c "/var/www/earth/vendor/bin/behat -p local --colors --config $BEHAT_DEFAULT_CONFIG  /var/www/earth/tests/behat/features"
-
-status "Visit the Drupal VM dashboard: http://$DRUPALVM_IP_ADDRESS:$DRUPALVM_HTTP_PORT"
 # Do not run in continuous integration environments
 if [ -z "$ENVIRONMENT" ]; then
   read -p "Would you like to log into the test environment? Yes to login, No to quit. " -n 1 -r

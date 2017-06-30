@@ -1,0 +1,12 @@
+---
+- name: Install BLT
+  command: docker exec $DRUPALVM_MACHINE_NAME /var/www/earth/vendor/acquia/blt/scripts/blt/install-alias.sh -y
+
+- name: Add SSH key
+  command:  docker exec $DRUPALVM_MACHINE_NAME sh -c "chmod 600 /root/.ssh/id_rsa"
+
+docker exec $DRUPALVM_MACHINE_NAME sh -c 'eval "$(ssh-agent)"'
+docker exec $DRUPALVM_MACHINE_NAME sh -c "ssh-keyscan earthstg.ssh.prod.acquia-sites.com >> /root/.ssh/known_hosts"
+
+status "Copying site alias"
+docker exec $DRUPALVM_MACHINE_NAME sh -c "cp $DRUSH_ALIAS /var/www/earth/drush/site-aliases/caravan.aliases.drushrc.php"

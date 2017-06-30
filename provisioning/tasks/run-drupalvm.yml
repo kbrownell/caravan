@@ -1,0 +1,4 @@
+---
+- name: Ensure DrupalVM uses caravan config variables
+
+- name: Run DrupalVM playbook on container
